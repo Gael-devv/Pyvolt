@@ -10,7 +10,7 @@ __all__ = (
 
 
 class File:
-    """Respresents a file about to be uploaded to Revolt"""
+    """Respresents a file about to be uploaded to Revolt API"""
     __slots__ = ("fp", "filename", "spoiler")
 
     if TYPE_CHECKING:
