@@ -255,6 +255,17 @@ class HTTPClient:
         else:
             return data
     
+    async def fetch_file(self, url: str) -> bytes:
+        async with self.__session.get(url) as resp:
+            if resp.status == 200:
+                return await resp.read()
+            elif resp.status == 404:
+                raise NotFound(resp, 'asset not found')
+            elif resp.status == 403:
+                raise Forbidden(resp, 'cannot retrieve asset')
+            else:
+                raise HTTPException(resp, 'failed to get asset')
+    
     # state management
     
     async def close(self) -> None:
@@ -280,7 +291,7 @@ class HTTPClient:
 
         return data
     
-    # core management
+    # API core management
     
     async def get_api_info(self) -> http.ApiInfo:
         return await self.request(Route('GET', '/'))
