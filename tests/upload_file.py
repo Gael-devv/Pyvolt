@@ -5,15 +5,10 @@ import pyvolt
 import asyncio
 
 
-load_dotenv()
-
-REVOLT_TOKEN = getenv("BOT_TOKEN")
-
-
 async def main():
     http_client = pyvolt.http.HTTPClient(loop=asyncio.get_event_loop())
     
-    token = pyvolt.Token(REVOLT_TOKEN)
+    token = pyvolt.Token(getenv("BOT_TOKEN"))
     await http_client.static_login(token)
     
     # upload file
@@ -24,4 +19,5 @@ async def main():
     await http_client.close()
 
 
+load_dotenv()
 asyncio.run(main())
