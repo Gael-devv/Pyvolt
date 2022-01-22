@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypedDict
     
+if TYPE_CHECKING:
+    from .member import Member
+    from .message import Message
+    from .user import User
+        
 __all__ = (
     "VosoFeature",
     "ApiInfo",
@@ -13,8 +18,10 @@ class ApiFeature(TypedDict):
     enabled: bool
     url: str
 
+
 class VosoFeature(ApiFeature):
     ws: str
+
 
 class Features(TypedDict):
     email: bool
@@ -24,6 +31,7 @@ class Features(TypedDict):
     january: ApiFeature
     voso: VosoFeature
 
+
 class ApiInfo(TypedDict):
     revolt: str
     features: Features
@@ -31,6 +39,17 @@ class ApiInfo(TypedDict):
     app: str
     vapid: str
 
+
 class Autumn(TypedDict):
     id: str
 
+
+class GetServerMembers(TypedDict):
+    members: list[Member]
+    users: list[User]
+
+
+class MessageWithUserData(TypedDict):
+    messages: list[Message]
+    members: list[Member]
+    users: list[User]
