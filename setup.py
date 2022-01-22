@@ -36,6 +36,7 @@ with open('README.md') as f:
 extras_require = {
     "speedups": [
         "ujson", 
+        "aiohttp[speedups]>=3.6.0,<3.9.0"
     ],
 }
 
@@ -49,6 +50,7 @@ setup(name="Pyvolt",
       packages=packages,
       license="MIT",
       author="Gael-devv",
+      author_email="gaelp.dev@gmail.com",
       url="https://github.com/Gael-devv/Pyvolt",
       project_urls={
         # "Documentation": "",
