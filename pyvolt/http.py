@@ -23,10 +23,11 @@ from .utils import MISSING
 if TYPE_CHECKING:
     from .token import Token
     from .file import File
-    from .enums import SortType
+    from .enums import SortType, RemoveFromProfileUser
     
     from .types import (
         http,
+        file,
         embed,
         message,
         user
@@ -282,7 +283,7 @@ class HTTPClient:
         self.token = token
 
         try: 
-            data = await self.request(Route('GET', '/users/@me'))
+            data = await self.request(Route("GET", "/users/@me"))
         except HTTPException as exc:
             self.token = old_token
             if exc.status == 401:
@@ -293,8 +294,57 @@ class HTTPClient:
     
     # API core management
     
-    async def get_api_info(self) -> http.ApiInfo:
-        return await self.request(Route('GET', '/'))
+    def get_api_info(self) -> Response[http.ApiInfo]:
+        return self.request(Route("GET", "/"))
+    
+    # User management
+    
+    def fetch_user(self, user_id: Snowflake) -> Response[user.User]: 
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/users/{user_id}", user_id=user_id))
+    
+    def edit_user(
+        self, 
+        *, 
+        status: Optional[user.Status] = None,
+        profile: Optional[user.UserProfile] = None,
+        avatar_id: Optional[Snowflake] = None,
+        remove: Optional[RemoveFromProfileUser] = None
+    ) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PATCH", "/users/@me")
+        payload: Dict[str, Any] = {}
+        
+        if status: 
+            payload["status"] = status
+        
+        if profile:
+            payload["profile"] = profile
+            
+        if avatar_id:
+            payload["avatar"] = avatar_id
+            
+        if remove:
+            payload["remove"] = remove.value
+        
+        return self.request(r, json=payload)
+    
+    def fetch_profile(self, user_id: Snowflake) -> Response[user.UserProfile]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/users/{user_id}/profile", user_id=user_id))
+    
+    def fetch_default_avatar(self, user_id: Snowflake) -> Response[bytes]:
+        default_avatar_url = Route.BASE + f"/users/{user_id}/default_avatar"
+        return self.fetch_file(default_avatar_url)
+    
+    def change_username(self, new_username: str, password: str) -> Response[None]: 
+        """AUTHORIZATIONS: Session Token"""
+        payload: Dict[str, Any] = {"username": new_username, "password": password}
+        return self.request(Route("PATCH", "/users/@me/username"), json=payload)
+
+    def fetch_mutual_friends_and_servers(self, user_id: Snowflake) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/users/{user_id}/mutual", user_id=user_id))        
     
     # Message management
     
@@ -307,12 +357,13 @@ class HTTPClient:
         embeds: Optional[List[embed.TextEmbed]] = None,
         attachment: Optional[File] = None,
         attachments: Optional[List[File]] = None, 
-        replie: Optional[List[message.MessageReply]] = None, 
+        replie: Optional[message.MessageReply] = None, 
         replies: Optional[List[message.MessageReply]] = None, 
         masquerade: Optional[message.Masquerade] = None
     ) -> message.Message:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("POST", "/channels/{channel_id}/messages", channel_id=channel_id)
-        payload: dict[str, Any] = {}
+        payload: Dict[str, Any] = {}
 
         if content:
             payload["content"] = content
@@ -356,8 +407,9 @@ class HTTPClient:
         embed: Optional[embed.TextEmbed] = None,
         embeds: Optional[List[embed.TextEmbed]] = None,
     ) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("PATCH", "/channels/{channel_id}/messages/{message_id}", channel_id=channel_id, message_id=message_id)
-        payload: dict[str, Any] = {}
+        payload: Dict[str, Any] = {}
 
         if content:
             payload["content"] = content
@@ -371,10 +423,12 @@ class HTTPClient:
         return self.request(r, json=payload)
     
     def delete_message(self, channel_id: Snowflake, message_id: Snowflake) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("DELETE", "/channels/{channel_id}/messages/{message_id}", channel_id=channel_id, message_id=message_id)
         return self.request(r)
     
     def fetch_message(self, channel_id: str, message_id: str) -> Response[message.Message]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("GET", "/channels/{channel_id}/messages/{message_id}", channel_id=channel_id, message_id=message_id)
         return self.request(r)
     
@@ -389,8 +443,9 @@ class HTTPClient:
         nearby: Optional[str] = None, 
         include_users: bool = False
     ) -> Response[Union[List[message.Message], http.MessageWithUserData]]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("GET", "/channels/{channel_id}/messages", channel_id=channel_id)
-        payload: dict[str, Any] = {"sort": sort.value, "include_users": str(include_users)}
+        payload: Dict[str, Any] = {"sort": sort.value, "include_users": str(include_users)}
 
         if limit:
             payload["limit"] = limit
@@ -417,8 +472,9 @@ class HTTPClient:
         sort: Optional[SortType] = None,
         include_users: bool = False
     ) -> Response[Union[List[message.Message], http.MessageWithUserData]]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("POST", "/channels/{channel_id}/search", channel_id=channel_id)
-        payload = {"query": query, "include_users": include_users}
+        payload: Dict[str, Any] = {"query": query, "include_users": include_users}
 
         if limit:
             payload["limit"] = limit
@@ -435,12 +491,12 @@ class HTTPClient:
         return self.request(r, json=payload)
     
     def poll_message_changes(self, channel_id: Snowflake, message_ids: SnowflakeList): 
-        r = Route("POST", "/channels/{channel_id}/messages/stale", channel_id=channel_id)
-        payload = {"ids": message_ids}
-        
-        return self.request(r, json=payload)
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("POST", "/channels/{channel_id}/messages/stale", channel_id=channel_id)  
+        return self.request(r, json={"ids": message_ids})
     
     def ack_message(self, channel_id: Snowflake, message_id: Snowflake): 
+        """AUTHORIZATIONS: Session Token"""
         r = Route("PUT", "/channels/{channel_id}/ack/{message_id}", channel_id=channel_id, message_id=message_id)
         return self.request(r)
     
