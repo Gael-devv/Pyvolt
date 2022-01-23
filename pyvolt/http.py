@@ -55,25 +55,25 @@ async def json_or_text(response: aiohttp.ClientResponse) -> Union[Dict[str, Any]
 
 
 class Route:
-    BASE: ClassVar[str] = 'https://api.revolt.chat'
+    base: ClassVar[str] = "https://api.revolt.chat"
 
     def __init__(self, method: str, path: str, **parameters: Any) -> None:
         self.path: str = path
         self.method: str = method
         
-        url = self.BASE + self.path
+        url = self.base + self.path
         if parameters:
             url = url.format_map({k: _uriquote(v) if isinstance(v, str) else v for k, v in parameters.items()})
         self.url: str = url
 
         # major parameters:
-        self.channel_id: Optional[Snowflake] = parameters.get('channel_id')
-        self.server_id: Optional[Snowflake] = parameters.get('server_id')
+        self.channel_id: Optional[Snowflake] = parameters.get("channel_id")
+        self.server_id: Optional[Snowflake] = parameters.get("server_id")
 
     @property
     def bucket(self) -> str:
         # the bucket is just method + path w/ major parameters
-        return f'{self.channel_id}:{self.server_id}:{self.path}'
+        return f"{self.channel_id}:{self.server_id}:{self.path}"
     
 
 class MaybeUnlock:
@@ -103,7 +103,9 @@ class HTTPClient:
     def __init__(
         self, 
         connector: Optional[aiohttp.BaseConnector] = None, 
-        *, loop: Optional[asyncio.AbstractEventLoop] = None
+        *, 
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+        base_url: Optional[str] = Route.base
     ) -> None:
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop() if loop is None else loop
         self.connector = connector
@@ -111,6 +113,9 @@ class HTTPClient:
         self._locks: weakref.WeakValueDictionary = weakref.WeakValueDictionary()
         self._global_over: asyncio.Event = asyncio.Event()
         self._global_over.set()
+        if base_url != Route.base:
+            Route.base = base_url
+
         # values set in static login
         self.token: Optional[Token] = None 
         self.api_info: Optional[http.ApiInfo] = None 
