@@ -6,6 +6,7 @@ __all__ = (
     "RelationshipType",
     "AssetType",
     "SortType",
+    "RemoveFromProfileUser"
 )
 
 
@@ -46,3 +47,10 @@ class SortType(Enum):
     latest    = "Latest"
     oldest    = "Oldest"
     relevance = "Relevance"
+
+
+class RemoveFromProfileUser(Enum):
+    avatar             = "Avatar"
+    profile_background = "ProfileBackground"
+    profile_content    = "ProfileContent"
+    status_text        = "StatusText"
