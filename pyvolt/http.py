@@ -303,12 +303,12 @@ class HTTPClient:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("GET", "/users/{user_id}", user_id=user_id))
     
-    def edit_user(
+    async def edit_user(
         self, 
         *, 
         status: Optional[user.Status] = None,
         profile: Optional[user.UserProfile] = None,
-        avatar_id: Optional[Snowflake] = None,
+        avatar: Optional[File] = None,
         remove: Optional[RemoveFromProfileUser] = None
     ) -> Response[None]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
@@ -320,14 +320,15 @@ class HTTPClient:
         
         if profile:
             payload["profile"] = profile
-            
-        if avatar_id:
-            payload["avatar"] = avatar_id
-            
+        
+        if avatar:
+            data = await self.upload_file(avatar, "avatars")
+            payload["avatar"] = data["id"]
+        
         if remove:
             payload["remove"] = remove.value
         
-        return self.request(r, json=payload)
+        return await self.request(r, json=payload)
     
     def fetch_profile(self, user_id: Snowflake) -> Response[user.UserProfile]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
