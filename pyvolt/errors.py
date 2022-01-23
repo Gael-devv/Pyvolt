@@ -60,8 +60,6 @@ class HTTPException(RevoltException):
         The text of the error. Could be an empty string.
     status: :class:`int`
         The status code of the HTTP request.
-    code: :class:`int`
-        The Revolt specific error code for the failure.
     """
 
     def __init__(self, response: _ResponseType, message: Optional[Union[str, Dict[str, Any]]]):
