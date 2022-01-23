@@ -344,7 +344,32 @@ class HTTPClient:
 
     def fetch_mutual_friends_and_servers(self, user_id: Snowflake) -> Response[None]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
-        return self.request(Route("GET", "/users/{user_id}/mutual", user_id=user_id))        
+        return self.request(Route("GET", "/users/{user_id}/mutual", user_id=user_id))
+    
+    # Relationships management
+    def fetch_relationships(self) -> Response[List[user.UserRelation]]: 
+        """AUTHORIZATIONS: Session Token"""
+        return self.request(Route("GET", "/users/relationships"))
+    
+    def fetch_relationship(self, user_id: Snowflake) -> Response[user.UserRelation]:
+        """AUTHORIZATIONS: Session Token"""
+        return self.request(Route("GET", "/users/{user_id}/relationship", user_id=user_id))
+    
+    def send_or_accept_friend_request(self, username: str) -> Response[Dict[str, user.Relation]]:
+        """AUTHORIZATIONS: Session Token"""
+        return self.request(Route("PUT", "/users/{username}/friend", username=username))
+    
+    def deny_friend_request_or_remove_friend(self, username: str) -> Response[Dict[str, user.Relation]]:
+        """AUTHORIZATIONS: Session Token"""
+        return self.request(Route("DELETE", "/users/{username}/friend", username=username))
+        
+    def block_user(self, user_id: Snowflake) -> Response[Dict[str, user.Relation]]:
+        """AUTHORIZATIONS: Session Token"""
+        return self.request(Route("PUT", "/users/{user_id}/block", user_id=user_id))
+        
+    def unblock_user(self, user_id: Snowflake) -> Response[Dict[str, user.Relation]]:
+        """AUTHORIZATIONS: Session Token"""
+        return self.request(Route("DELETE", "/users/{user_id}/block", user_id=user_id))
     
     # Message management
     
