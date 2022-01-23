@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, NewType
 
-Snowflake = Union[str, int]
+Snowflake = NewType("_id", str)
 SnowflakeList = List[Snowflake]
