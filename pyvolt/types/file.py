@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, TypedDict, Union
 
+if TYPE_CHECKING:
+    from .snowflake import Snowflake
+
 __all__ = ("File",)
 
 
@@ -19,7 +22,7 @@ FileMetadata = Union[SizedMetadata, SimpleMetadata]
 
 
 class File(TypedDict):
-    _id: str
+    _id: Snowflake
     tag: str
     size: int
     filename: str

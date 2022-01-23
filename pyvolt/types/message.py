@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List, TypedDict, Union
 
 if TYPE_CHECKING:
-    from .embed import EmbedType
     from .file import File
+    from .embed import EmbedType
+    from .snowflake import Snowflake
 
 __all__ = (
     "Message",
@@ -71,7 +72,7 @@ class _OptionalMessage(TypedDict):
 
 
 class Message(_OptionalMessage):
-    _id: str
+    _id: Snowflake
     channel: str
     author: str
     content: Union[

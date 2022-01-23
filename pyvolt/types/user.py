@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Literal, TypedDict
 
 if TYPE_CHECKING:
     from .file import File
+    from .snowflake import Snowflake
 
 __all__ = (
     "UserRelation",
@@ -29,7 +30,7 @@ class Status(TypedDict, total=False):
 
 class UserRelation(TypedDict):
     status: Relation
-    _id: str
+    _id: Snowflake
 
 
 class _OptionalUser(TypedDict, total=False):
@@ -44,7 +45,7 @@ class _OptionalUser(TypedDict, total=False):
 
 
 class User(_OptionalUser):
-    _id: str
+    _id: Snowflake
     username: str
 
 
