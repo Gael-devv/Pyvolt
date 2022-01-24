@@ -28,8 +28,11 @@ class Status(TypedDict, total=False):
     presence: Literal["Busy", "Idle", "Invisible", "Online"]
 
 
-class UserRelation(TypedDict):
+class RelationStatus:
     status: Relation
+
+
+class UserRelation(RelationStatus):
     _id: Snowflake
 
 
