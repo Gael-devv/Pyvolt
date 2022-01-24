@@ -30,6 +30,7 @@ if TYPE_CHECKING:
         file,
         embed,
         message,
+        channel,
         user
     )
     from .types.snowflake import Snowflake, SnowflakeList
@@ -533,4 +534,12 @@ class HTTPClient:
         """AUTHORIZATIONS: Session Token"""
         r = Route("PUT", "/channels/{channel_id}/ack/{message_id}", channel_id=channel_id, message_id=message_id)
         return self.request(r)
+    
+    # DM management
+    
+    def fetch_dm_channels(self) -> Response[List[channel.ChannelType]]: 
+        return self.request(Route("GET", "/users/dms"))
+        
+    def open_dm(self, user_id: Snowflake) -> Response[channel.DMChannel]:
+        return self.request(Route("GET", "/users/{user_id}/dm", user_id=user_id))
     
