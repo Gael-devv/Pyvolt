@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, List, TypedDict, Union
 if TYPE_CHECKING:
     from .file import File
     from .embed import EmbedType
-    from .snowflake import Snowflake
+    from .snowflake import Snowflake, SnowflakeList
 
 __all__ = (
     "Message",
-    "MessageReplyPayload",
+    "MessageReply",
     "Masquerade"
 )
 
@@ -62,16 +62,16 @@ class Masquerade(TypedDict, total=False):
     avatar: str
 
 
-class _OptionalMessage(TypedDict):
+class _MessageOptional(TypedDict, total=False):
     attachments: List[File]
     embeds: List[EmbedType]
-    mentions: List[str]
-    replies: List[str]
+    mentions: SnowflakeList # user ids
+    replies: SnowflakeList # message ids
     edited: MessageEdited
     masquerade: Masquerade
 
 
-class Message(_OptionalMessage):
+class Message(_MessageOptional):
     _id: Snowflake
     channel: str
     author: str
@@ -90,5 +90,5 @@ class Message(_OptionalMessage):
 
 
 class MessageReply(TypedDict):
-    id: str
+    id: Snowflake # message id
     mention: bool
