@@ -92,3 +92,7 @@ class Message(_MessageOptional):
 class MessageReply(TypedDict):
     id: Snowflake # message id
     mention: bool
+    
+class ChangedMessages(TypedDict):
+    changed: List[Message]
+    deleted: SnowflakeList

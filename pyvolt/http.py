@@ -114,6 +114,7 @@ class HTTPClient:
         self._locks: weakref.WeakValueDictionary = weakref.WeakValueDictionary()
         self._global_over: asyncio.Event = asyncio.Event()
         self._global_over.set()
+        
         if base_url != Route.base:
             Route.base = base_url
 
@@ -267,11 +268,11 @@ class HTTPClient:
             if resp.status == 200:
                 return await resp.read()
             elif resp.status == 404:
-                raise NotFound(resp, 'asset not found')
+                raise NotFound(resp, "file not found")
             elif resp.status == 403:
-                raise Forbidden(resp, 'cannot retrieve asset')
+                raise Forbidden(resp, "cannot retrieve file")
             else:
-                raise HTTPException(resp, 'failed to get asset')
+                raise HTTPException(resp, "failed to get file")
     
     # state management
     
@@ -525,12 +526,12 @@ class HTTPClient:
 
         return self.request(r, json=payload)
     
-    def poll_message_changes(self, channel_id: Snowflake, message_ids: SnowflakeList): 
+    def poll_message_changes(self, channel_id: Snowflake, message_ids: SnowflakeList) -> Response[message.ChangedMessages]: 
         """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("POST", "/channels/{channel_id}/messages/stale", channel_id=channel_id)  
         return self.request(r, json={"ids": message_ids})
     
-    def ack_message(self, channel_id: Snowflake, message_id: Snowflake): 
+    def ack_message(self, channel_id: Snowflake, message_id: Snowflake) -> Response[None]: 
         """AUTHORIZATIONS: Session Token"""
         r = Route("PUT", "/channels/{channel_id}/ack/{message_id}", channel_id=channel_id, message_id=message_id)
         return self.request(r)
@@ -538,8 +539,10 @@ class HTTPClient:
     # DM management
     
     def fetch_dm_channels(self) -> Response[List[channel.ChannelType]]: 
+        """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("GET", "/users/dms"))
         
     def open_dm(self, user_id: Snowflake) -> Response[channel.DMChannel]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("GET", "/users/{user_id}/dm", user_id=user_id))
     

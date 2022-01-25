@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, List, TypedDict
     
 if TYPE_CHECKING:
     from .member import Member
@@ -45,11 +45,11 @@ class Autumn(TypedDict):
 
 
 class GetServerMembers(TypedDict):
-    members: list[Member]
-    users: list[User]
+    members: List[Member]
+    users: List[User]
 
 
 class MessageWithUserData(TypedDict):
-    messages: list[Message]
-    members: list[Member]
-    users: list[User]
+    messages: List[Message]
+    members: List[Member]
+    users: List[User]
