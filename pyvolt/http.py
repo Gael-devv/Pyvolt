@@ -23,7 +23,7 @@ from .utils import MISSING
 if TYPE_CHECKING:
     from .token import Token
     from .file import File
-    from .enums import SortType, RemoveFromProfileUser
+    from .enums import SortType, RemoveFromProfileUser, RemoveFromChannel
     
     from .types import (
         http,
@@ -306,10 +306,6 @@ class HTTPClient:
     
     # User management
     
-    def fetch_user(self, user_id: Snowflake) -> Response[user.User]: 
-        """AUTHORIZATIONS: Session Token or Bot Token"""
-        return self.request(Route("GET", "/users/{user_id}", user_id=user_id))
-    
     async def edit_user(
         self, 
         *, 
@@ -317,7 +313,7 @@ class HTTPClient:
         profile: Optional[user.UserProfile] = None,
         avatar: Optional[File] = None,
         remove: Optional[RemoveFromProfileUser] = None
-    ) -> Response[None]:
+    ) -> None:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("PATCH", "/users/@me")
         payload: Dict[str, Any] = {}
@@ -336,6 +332,10 @@ class HTTPClient:
             payload["remove"] = remove.value
         
         return await self.request(r, json=payload)
+    
+    def fetch_user(self, user_id: Snowflake) -> Response[user.User]: 
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/users/{user_id}", user_id=user_id))
     
     def fetch_profile(self, user_id: Snowflake) -> Response[user.UserProfile]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
@@ -546,3 +546,56 @@ class HTTPClient:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("GET", "/users/{user_id}/dm", user_id=user_id))
     
+    # Channel management 
+        
+    async def edit_channel(
+        self, 
+        channel_id: Snowflake, 
+        *, 
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        icon: Optional[File] = None,
+        nsfw: bool = False,
+        remove: Optional[RemoveFromChannel] = None
+    ) -> None:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PATCH", "/channels/{channel_id}", channel_id=channel_id)
+        payload: Dict[str, Any] = {"nsfw": nsfw}
+        
+        if name:
+            payload["name"] = name
+        
+        if description:
+            payload["description"] = description
+        
+        if icon:
+            data = await self.upload_file(icon, "icons")
+            payload["icon"] = data["id"]
+        
+        if remove:
+            payload["remove"] = remove.value
+        
+        return await self.request(r, json=payload)
+    
+    def fetch_channel(self, channel_id: Snowflake) -> Response[channel.ChannelType]: 
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/channels/{channel_id}", channel_id=channel_id))
+    
+    def close_channel(self, channel_id: Snowflake) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("DELETE", "/channels/{channel_id}", channel_id=channel_id))
+    
+    def create_invite(self, channel_id: Snowflake):
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("POST", "/channels/{channel_id}/invites", channel_id=channel_id))
+    
+    def set_channel_role_permissions(self, channel_id: Snowflake, role_id: Snowflake, channel_permissions: int) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PUT", "/channels/{channel_id}/permissions/{role_id}", channel_id=channel_id, role_id=role_id)
+        return self.request(r, json={"permissions": channel_permissions})
+
+    def set_channel_default_permissions(self, channel_id: Snowflake, channel_permissions: int) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PUT", "/channels/{channel_id}/permissions/default", channel_id=channel_id)
+        return self.request(r, json={"permissions": channel_permissions})  
+        
