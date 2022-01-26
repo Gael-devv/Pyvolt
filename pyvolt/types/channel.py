@@ -80,4 +80,5 @@ class VoiceChannel(_BaseChannel, _VoiceChannelOptional):
     name: str
 
 
-ChannelType = Union[SavedMessages, DMChannel, Group, TextChannel, VoiceChannel]
+ServerChannel = Union[TextChannel, VoiceChannel]
+ChannelType = Union[ServerChannel, SavedMessages, DMChannel, Group]
