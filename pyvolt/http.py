@@ -31,6 +31,7 @@ if TYPE_CHECKING:
         embed,
         message,
         channel,
+        invites,
         user
     )
     from .types.snowflake import Snowflake, SnowflakeList
@@ -585,7 +586,7 @@ class HTTPClient:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("DELETE", "/channels/{channel_id}", channel_id=channel_id))
     
-    def create_invite(self, channel_id: Snowflake):
+    def create_invite(self, channel_id: Snowflake) -> Response[invites.InviteCreated]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("POST", "/channels/{channel_id}/invites", channel_id=channel_id))
     
