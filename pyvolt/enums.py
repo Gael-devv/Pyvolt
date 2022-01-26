@@ -6,7 +6,8 @@ __all__ = (
     "RelationshipType",
     "AssetType",
     "SortType",
-    "RemoveFromProfileUser"
+    "RemoveFromProfileUser",
+    "RemoveFromChannel"
 )
 
 
@@ -54,3 +55,8 @@ class RemoveFromProfileUser(Enum):
     profile_background = "ProfileBackground"
     profile_content    = "ProfileContent"
     status_text        = "StatusText"
+
+
+class RemoveFromChannel(Enum):
+    icon        = "Icon"
+    description = "Description"
