@@ -48,7 +48,7 @@ class Group(_BaseChannel, _GroupOptional):
     channel_type: Literal["Group"]
     recipients: SnowflakeList
     name: str
-    owner: str
+    owner: Snowflake
 
 
 class _TextChannelOptional(TypedDict, total=False):
