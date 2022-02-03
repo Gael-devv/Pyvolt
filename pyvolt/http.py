@@ -29,8 +29,11 @@ if TYPE_CHECKING:
         http,
         file,
         embed,
+        server,
         message,
         channel,
+        invites,
+        role,
         user
     )
     from .types.snowflake import Snowflake, SnowflakeList
@@ -358,6 +361,7 @@ class HTTPClient:
         return self.request(Route("GET", "/users/{user_id}/mutual", user_id=user_id))
     
     # Relationships management
+    
     def fetch_relationships(self) -> Response[List[user.UserRelation]]: 
         """AUTHORIZATIONS: Session Token"""
         return self.request(Route("GET", "/users/relationships"))
@@ -585,17 +589,58 @@ class HTTPClient:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("DELETE", "/channels/{channel_id}", channel_id=channel_id))
     
-    def create_invite(self, channel_id: Snowflake):
+    def create_invite(self, channel_id: Snowflake) -> Response[invites.InviteCreated]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("POST", "/channels/{channel_id}/invites", channel_id=channel_id))
     
     def set_channel_role_permissions(self, channel_id: Snowflake, role_id: Snowflake, channel_permissions: int) -> Response[None]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("PUT", "/channels/{channel_id}/permissions/{role_id}", channel_id=channel_id, role_id=role_id)
-        return self.request(r, json={"permissions": channel_permissions})
+        payload = {"permissions": channel_permissions}
+        
+        return self.request(r, json=payload)
 
     def set_channel_default_permissions(self, channel_id: Snowflake, channel_permissions: int) -> Response[None]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("PUT", "/channels/{channel_id}/permissions/default", channel_id=channel_id)
-        return self.request(r, json={"permissions": channel_permissions})  
+        payload = {"permissions": channel_permissions}
         
+        return self.request(r, json=payload)  
+        
+    # Group management
+    
+    def create_group(
+        self, 
+        name: str, 
+        *, 
+        description: Optional[str] = None, 
+        users: Optional[SnowflakeList] = None,
+        nsfw: bool = False
+    ) -> Response[channel.Group]: 
+        """AUTHORIZATIONS: Session Token"""
+        r = Route("POST", "/channels/create")
+        payload: Dict[str, Any] = {"name": name, "nsfw": nsfw}
+        
+        if description: 
+            payload["description"] = description
+            
+        if users:
+            payload["users"] = users
+        
+        return self.request(r, json=payload)
+        
+    def fetch_group_members(self, channel_id: Snowflake) -> List[user.User]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/channels/{channel_id}/members", channel_id=channel_id))
+    
+    # Voice management 
+    
+    def join_call(self, channel_id: Snowflake) -> Response[http.JoinCall]: 
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("POST", "/channels/{channel_id}/join_call", channel_id=channel_id))
+        
+    # Server management
+    
+    def fetch_server(self, server_id: Snowflake) -> Response[server.Server]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        ...
