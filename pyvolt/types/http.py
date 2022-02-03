@@ -53,3 +53,7 @@ class MessageWithUserData(TypedDict):
     messages: List[Message]
     members: List[Member]
     users: List[User]
+
+
+class JoinCall(TypedDict):
+    token: str
