@@ -23,7 +23,7 @@ from .utils import MISSING
 if TYPE_CHECKING:
     from .token import Token
     from .file import File
-    from .enums import SortType, RemoveFromProfileUser, RemoveFromChannel
+    from .enums import ServerChannelType, SortType, RemoveFromProfileUser, RemoveFromChannel, RemoveFromServer
     
     from .types import (
         http,
@@ -643,4 +643,84 @@ class HTTPClient:
     
     def fetch_server(self, server_id: Snowflake) -> Response[server.Server]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
-        ...
+        return self.request(Route("GET", "/servers/{server_id}", server_id=server_id))
+        
+    async def edit_server(
+        self,
+        server_id: Snowflake,
+        *,
+        icon: Optional[File] = None,
+        banner: Optional[File] = None,
+        remove: Optional[RemoveFromServer] = None,
+        **options: Any
+    ) -> None:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PATCH", "/servers/{server_id}", server_id=server_id)
+        payload: Dict[str, Any] = {}
+        
+        if icon: 
+            data = await self.upload_file(icon, "icons")
+            payload["icon"] = data["id"]
+        
+        if banner: 
+            data = await self.upload_file(banner, "banners")
+            payload["banner"] = data["id"]
+        
+        if remove:
+            payload["remove"] = remove.value
+        
+        valid_keys = (
+            "name", 
+            "description",
+            "categories",
+            "system_messages",
+            "nsfw"
+        )
+        payload.update({k: v for k, v in options.items() if k in valid_keys and v is not None})
+        
+        return await self.request(r, json=payload)
+        
+    def create_server(self, name: str, *, description: Optional[str] = None, nsfw: bool = False) -> Response[server.Server]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("POST", "/servers/create")
+        payload: Dict[str, Any] = {"name": name, "nsfw": nsfw}
+        
+        if description:
+            payload["description"] = description
+            
+        return self.request(r, json=payload)
+    
+    def delete_leave_server(self, server_id: Snowflake) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("DELETE", "/servers/{server_id}", server_id=server_id))
+        
+    def create_server_channel(
+        self, 
+        server_id: Snowflake, 
+        channel_type: ServerChannelType, 
+        *, 
+        name: str, 
+        description: Optional[str] = None, 
+        nsfw: bool = False
+    ) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("POST", "/servers/{server_id}/channels", server_id=server_id)
+        payload = {
+            "type": channel_type.value,
+            "name": name,
+            "nsfw": nsfw
+        }
+        
+        if description: 
+            payload["description"] = description
+            
+        return self.request(r, json=payload)
+        
+    def fetch_server_invites(self, server_id: Snowflake) -> Response[List[invites.ServerInvite]]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/servers/{server_id}/invites", server_id=server_id))
+        
+    def mark_server_as_read(self, server_id: Snowflake) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("PUT", "/servers/{server_id}/ack", server_id=server_id))
+    
