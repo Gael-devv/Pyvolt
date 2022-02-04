@@ -71,3 +71,8 @@ class RemoveFromServer(Enum):
     icon        = "Icon"
     banner      = "Banner"
     description = "Description"
+
+
+class RemoveFromProfileMember(Enum):
+    avatar   = "Avatar"
+    nickname = "Nickname"
