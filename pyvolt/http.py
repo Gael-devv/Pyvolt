@@ -23,7 +23,7 @@ from .utils import MISSING
 if TYPE_CHECKING:
     from .token import Token
     from .file import File
-    from .enums import ServerChannelType, SortType, RemoveFromProfileUser, RemoveFromChannel, RemoveFromServer
+    from .enums import ServerChannelType, SortType, RemoveFromProfileUser, RemoveFromChannel, RemoveFromServer, RemoveFromProfileMember
     
     from .types import (
         http,
@@ -33,6 +33,7 @@ if TYPE_CHECKING:
         message,
         channel,
         invites,
+        member,
         role,
         user
     )
@@ -723,4 +724,65 @@ class HTTPClient:
     def mark_server_as_read(self, server_id: Snowflake) -> Response[None]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("PUT", "/servers/{server_id}/ack", server_id=server_id))
+    
+    # Member management
+    
+    def fetch_member(self, server_id: Snowflake, member_id: Snowflake) -> Response[member.Member]: 
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("GET", "/servers/{server_id}/members/{member_id}", server_id=server_id, member_id=member_id)
+        return self.request(r)
+        
+    async def edit_member(
+        self, 
+        server_id: Snowflake, 
+        member_id: Snowflake,
+        *,
+        nickname: Optional[str] = None,
+        avatar: Optional[File] = None,
+        roles: Optional[SnowflakeList] = None,
+        remove: Optional[RemoveFromProfileMember] = None
+    ) -> None:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PATCH", "/servers/{server_id}/members/{member_id}", server_id=server_id, member_id=member_id)
+        payload: Dict[str, Any] = {}
+        
+        if nickname:
+            payload["nickname"] = nickname
+            
+        if avatar:
+            data = await self.upload_file(avatar, "avatars")
+            payload["avatar"] = data["id"]
+        
+        if roles:
+            payload["roles"] = roles
+        
+        if remove:
+            payload["remove"] = remove.value
+            
+        return self.request(r, json=payload)
+        
+    def kick_member(self, server_id: Snowflake, member_id: Snowflake) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("DELETE", "/servers/{server_id}/members/{member_id}", server_id=server_id, member_id=member_id)
+        return self.request(r)
+        
+    def fetch_members(self, server_id: Snowflake) -> Response[http.GetServerMembers]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/servers/{server_id}/members", server_id=server_id))
+        
+    def fetch_bans(self, server_id: Snowflake) -> Response[server.ServerBans]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/servers/{server_id}/bans", server_id=server_id))
+        
+    def ban_member(self, server_id: Snowflake, member_id: Snowflake, reason: Optional[str] = None) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PUT", "/servers/{server_id}/bans/{member_id}", server_id=server_id, member_id=member_id)
+        payload = {"reason": reason} if reason else None
+        
+        return self.request(r, json=payload)
+        
+    def unban_member(self, server_id: Snowflake, member_id: Snowflake) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("DELETE", "/servers/{server_id}/bans/{member_id}", server_id=server_id, member_id=member_id)
+        return self.request(r)
     
