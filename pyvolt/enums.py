@@ -50,6 +50,11 @@ class SortType(Enum):
     relevance = "Relevance"
 
 
+class ServerChannelType(Enum):
+    text = "Text"
+    voice = "Voice"
+
+
 class RemoveFromProfileUser(Enum):
     avatar             = "Avatar"
     profile_background = "ProfileBackground"
@@ -59,4 +64,10 @@ class RemoveFromProfileUser(Enum):
 
 class RemoveFromChannel(Enum):
     icon        = "Icon"
+    description = "Description"
+
+
+class RemoveFromServer(Enum):
+    icon        = "Icon"
+    banner      = "Banner"
     description = "Description"
