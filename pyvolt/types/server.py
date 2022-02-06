@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, TypedDict, List
 if TYPE_CHECKING:
     from .file import File
     from .category import Category
-    from .role import Permission, Role
+    from .role import Permissions, Role
     from .snowflake import Snowflake, SnowflakeList
 
 __all__ = (
@@ -40,7 +40,7 @@ class Server(_ServerOptional):
     owner: Snowflake
     name: str
     channels: SnowflakeList
-    default_permissions: Permission
+    default_permissions: Permissions
 
 
 class _OptionalBannedUser(TypedDict, total=False):
