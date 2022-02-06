@@ -1,32 +1,40 @@
-from typing import TYPE_CHECKING, Literal, TypedDict, Union
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 if TYPE_CHECKING:
     from .snowflake import Snowflake
+    from .file import File
     
 __all__ = (
     "InviteCreated",
-    "GroupInvite",
-    "ServerInvite",
     "Invite",
+    "PartialInvite"
 )
+
 
 class InviteCreated(TypedDict):
     code: str
 
 
-class BaseInvite(TypedDict):
-    _id: Snowflake
-    creator: Snowflake
-    channel: Snowflake
+class _InviteOptional(TypedDict, total=False):
+    server_icon: File
+    server_banner: File
+    channel_description: str
+    user_avatar: File
 
 
-class GroupInvite(BaseInvite):
-    type: Literal["Group"]
-
-
-class ServerInvite(TypedDict):
+class Invite(_InviteOptional):
     type: Literal["Server"]
-    server: str
+    server_id: Snowflake
+    server_name: str
+    channel_id: Snowflake
+    channel_name: str
+    user_name: str
+    member_count: int
 
 
-Invite = Union[ServerInvite, GroupInvite]
+class PartialInvite(TypedDict):
+    type: Literal["Server"]
+    _id: Snowflake
+    server: Snowflake
+    channel: Snowflake
+    creator: Snowflake
