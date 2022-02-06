@@ -728,7 +728,7 @@ class HTTPClient:
             
         return self.request(r, json=payload)
         
-    def fetch_server_invites(self, server_id: Snowflake) -> Response[List[invites.ServerInvite]]:
+    def fetch_server_invites(self, server_id: Snowflake) -> Response[List[invites.PartialInvite]]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         return self.request(Route("GET", "/servers/{server_id}/invites", server_id=server_id))
         
@@ -863,3 +863,14 @@ class HTTPClient:
         }
 
         return self.request(r, json=payload)
+    
+    # Invite management
+    
+    def fetch_invite(self, code: str) -> Response[invites.Invite]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("GET", "/invites/{invite_code}", invite_code=code))
+        
+    def delete_invite(self, code: str) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("DELETE", "/invites/{invite_code}", invite_code=code))
+    
