@@ -786,3 +786,69 @@ class HTTPClient:
         r = Route("DELETE", "/servers/{server_id}/bans/{member_id}", server_id=server_id, member_id=member_id)
         return self.request(r)
     
+    # Role management
+    
+    def create_role(self, server_id: Snowflake, name: str) -> Response[role.Role]: 
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("POST", "/servers/{server_id}/roles", server_id=server_id)        
+        return self.request(r, json={"name": name})
+    
+    def edit_role(
+        self, 
+        server_id: Snowflake, 
+        role_id: Snowflake, 
+        *, 
+        name: Optional[str] = None,
+        colour: Optional[str] = None, # the values can be like this #674EA7 or rgb (103,78,167), and I suppose that with rgba() it also works
+        hoist: Optional[bool] = None,
+        rank: Optional[int] = None,
+        remove_colour: Optional[bool] = None
+    ) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PATCH", "/servers/{server_id}/roles/{role_id}", server_id=server_id, role_id=role_id)
+        payload: Dict[str, Any] = {}
+        
+        if name:
+            payload["name"] = name
+            
+        if colour:
+            payload["colour"] = colour
+            
+        if hoist is not None:
+            payload["hoist"] = hoist
+            
+        if rank:
+            payload["rank"] = rank
+            
+        if remove_colour:
+            payload["remove"] = "Colour"
+
+        return self.request(r, json=payload)
+
+    def delete_role(self, server_id: Snowflake, role_id: Snowflake) -> Response[None]: 
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        return self.request(Route("DELETE", "/servers/{server_id}/roles/{role_id}", server_id=server_id, role_id=role_id))
+    
+    def set_role_permissions(self, server_id: Snowflake, role_id: Snowflake, server_permissions: int, channel_permissions: int) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PUT", "/servers/{server_id}/permissions/{role_id}", server_id=server_id, role_id=role_id)
+        payload = {
+            "permissions": {
+                "server": server_permissions,
+                "channel": channel_permissions
+            }
+        }
+
+        return self.request(r, json=payload)
+    
+    def set_default_permissions(self, server_id: Snowflake, server_permissions: int, channel_permissions: int) -> Response[None]:
+        """AUTHORIZATIONS: Session Token or Bot Token"""
+        r = Route("PUT", "/servers/{server_id}/permissions/default", server_id=server_id)
+        payload = {
+            "permissions": {
+                "server": server_permissions,
+                "channel": channel_permissions
+            }
+        }
+
+        return self.request(r, json=payload)
