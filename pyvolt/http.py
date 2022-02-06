@@ -560,12 +560,12 @@ class HTTPClient:
         name: Optional[str] = None,
         description: Optional[str] = None,
         icon: Optional[File] = None,
-        nsfw: bool = False,
+        nsfw: Optional[bool] = None,
         remove: Optional[RemoveFromChannel] = None
     ) -> None:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("PATCH", "/channels/{channel_id}", channel_id=channel_id)
-        payload: Dict[str, Any] = {"nsfw": nsfw}
+        payload: Dict[str, Any] = {}
         
         if name:
             payload["name"] = name
@@ -576,6 +576,9 @@ class HTTPClient:
         if icon:
             data = await self.upload_file(icon, "icons")
             payload["icon"] = data["id"]
+        
+        if nsfw is not None:
+            payload["nsfw"] = nsfw
         
         if remove:
             payload["remove"] = remove.value
@@ -616,7 +619,7 @@ class HTTPClient:
         *, 
         description: Optional[str] = None, 
         users: Optional[SnowflakeList] = None,
-        nsfw: bool = False
+        nsfw: Optional[bool] = None
     ) -> Response[channel.Group]: 
         """AUTHORIZATIONS: Session Token"""
         r = Route("POST", "/channels/create")
@@ -627,6 +630,9 @@ class HTTPClient:
             
         if users:
             payload["users"] = users
+            
+        if nsfw is not None:
+            payload["nsfw"] = nsfw
         
         return self.request(r, json=payload)
         
@@ -681,13 +687,16 @@ class HTTPClient:
         
         return await self.request(r, json=payload)
         
-    def create_server(self, name: str, *, description: Optional[str] = None, nsfw: bool = False) -> Response[server.Server]:
+    def create_server(self, name: str, *, description: Optional[str] = None, nsfw: Optional[bool] = None) -> Response[server.Server]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("POST", "/servers/create")
-        payload: Dict[str, Any] = {"name": name, "nsfw": nsfw}
+        payload = {"name": name}
         
         if description:
             payload["description"] = description
+            
+        if nsfw is not None:
+            payload["nsfw"] = nsfw
             
         return self.request(r, json=payload)
     
@@ -702,18 +711,20 @@ class HTTPClient:
         *, 
         name: str, 
         description: Optional[str] = None, 
-        nsfw: bool = False
+        nsfw: Optional[bool] = None
     ) -> Response[None]:
         """AUTHORIZATIONS: Session Token or Bot Token"""
         r = Route("POST", "/servers/{server_id}/channels", server_id=server_id)
         payload = {
             "type": channel_type.value,
-            "name": name,
-            "nsfw": nsfw
+            "name": name
         }
         
         if description: 
             payload["description"] = description
+            
+        if nsfw is not None:
+            payload["nsfw"] = nsfw
             
         return self.request(r, json=payload)
         
