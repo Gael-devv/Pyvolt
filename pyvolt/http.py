@@ -109,8 +109,10 @@ class HTTPClient:
         self, 
         connector: Optional[aiohttp.BaseConnector] = None, 
         *, 
+        proxy: Optional[str] = None,
+        proxy_auth: Optional[aiohttp.BasicAuth] = None,
         loop: Optional[asyncio.AbstractEventLoop] = None,
-        base_url: Optional[str] = Route.base
+        base_url: Optional[str] = None
     ) -> None:
         self.loop: asyncio.AbstractEventLoop = asyncio.get_event_loop() if loop is None else loop
         self.connector = connector
@@ -119,7 +121,10 @@ class HTTPClient:
         self._global_over: asyncio.Event = asyncio.Event()
         self._global_over.set()
         
-        if base_url != Route.base:
+        self.proxy: Optional[str] = proxy
+        self.proxy_auth: Optional[aiohttp.BasicAuth] = proxy_auth
+        
+        if base_url:
             Route.base = base_url
 
         # values set in static login
@@ -167,6 +172,12 @@ class HTTPClient:
             kwargs["data"] = _json.dumps(kwargs.pop('json'))
 
         kwargs['headers'] = headers
+        
+        # Proxy support
+        if self.proxy is not None:
+            kwargs['proxy'] = self.proxy
+        if self.proxy_auth is not None:
+            kwargs['proxy_auth'] = self.proxy_auth
         
         if not self._global_over.is_set():
             # wait until the global lock is complete
