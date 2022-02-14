@@ -37,68 +37,71 @@ __all__ = (
 class ChannelPermissions(BaseFlags):
     """Represents the channel permissions for a role as seen in channel settings."""
 
+    __slots__ = ()
+
+    def __init__(self, permissions: int = 0, **kwargs: bool):
+        if not isinstance(permissions, int):
+            raise TypeError(f"Expected int parameter, received {permissions.__class__.__name__} instead.")
+
+        self.value = permissions
+        
+        for key, value in kwargs.items():
+            if key not in self.VALID_FLAGS:
+                raise TypeError(f"{key!r} is not a valid permission name.")
+        
+            setattr(self, key, value)
+
     @classmethod
     def none(cls) -> ChannelPermissions:
-        return cls._from_value(0)
+        """A factory method that creates a :class:`ChannelPermissions` with all
+        permissions set to ``False``.
+        """
+        return cls(0)
 
     @classmethod
     def all(cls) -> ChannelPermissions:
-        return cls._from_value(0b11111011)
+        """A factory method that creates a :class:`ChannelPermissions` with all
+        permissions set to ``True``.
+        """
+        return cls(0b11111011)
 
     @classmethod
-    def view(cls) -> ChannelPermissions:
-        return cls._from_value(0b1)
-
-    @classmethod
-    def send_message(cls) -> ChannelPermissions:
-        return cls._from_value(0b11)
-
-    @classmethod
-    def manage_channel(cls) -> ChannelPermissions:
-        return cls._from_value(0b1001)
-
-    @classmethod
-    def voice_call(cls) -> ChannelPermissions:
-        return cls._from_value(0b10001)
-
-    @classmethod
-    def invite_others(cls) -> ChannelPermissions:
-        return cls._from_value(0b100001)
-
-    @classmethod
-    def embed_links(cls) -> ChannelPermissions:
-        return cls._from_value(0b1000001)
-
-    @classmethod
-    def upload_files(cls) -> ChannelPermissions:
-        return cls._from_value(0b10000001)
+    def text(cls) -> ChannelPermissions:
+        """A factory method that creates a :class:`ChannelPermissions` with all
+        "Text" channel permissions from the Revolt api set to ``True``.
+        """
+        return cls(0b11000011)
 
     @flag_value
-    def can_view() -> int:
+    def view_channel() -> int:
         return 1 << 0
 
     @flag_value
-    def can_send_message() -> int:
+    def send_message() -> int:
         return 1 << 1
+    
+    @flag_value
+    def manage_messages() -> int:
+        return 1 << 2
 
     @flag_value
-    def can_manage_channel() -> int:
+    def manage_channel() -> int:
         return 1 << 3
 
     @flag_value
-    def can_voice_call() -> int:
+    def connect() -> int:
         return 1 << 4
 
     @flag_value
-    def can_invite_others() -> int:
+    def invite_others() -> int:
         return 1 << 5
 
     @flag_value
-    def can_embed_links() -> int:
+    def embed_links() -> int:
         return 1 << 6
 
     @flag_value
-    def can_upload_files() -> int:
+    def upload_files() -> int:
         return 1 << 7
 
 
@@ -106,13 +109,31 @@ class ChannelPermissions(BaseFlags):
 class ServerPermissions(BaseFlags):
     """Represents the server permissions for a role as seen in server settings."""
 
+    __slots__ = ()
+
+    def __init__(self, permissions: int = 0, **kwargs: bool):
+        if not isinstance(permissions, int):
+            raise TypeError(f"Expected int parameter, received {permissions.__class__.__name__} instead.")
+
+        self.value = permissions
+        
+        for key, value in kwargs.items():
+            if key not in self.VALID_FLAGS:
+                raise TypeError(f"{key!r} is not a valid permission name.")
+        
+            setattr(self, key, value)
+
     @classmethod
     def none(cls) -> ServerPermissions:
-        return cls._from_value(0)
+        return cls(0)
 
     @classmethod
     def all(cls) -> ServerPermissions:
-        return cls._from_value(0b1111000000111111)
+        return cls(0b1111000000111111)
+
+    @classmethod
+    def moderator(cls) -> ServerPermissions:
+        return cls(0b1111000000101111)
 
     @flag_value
     def view_server() -> int:
