@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .flags import BaseFlags, flag_value
+from .flags import BaseFlags, flag_value, fill_with_flags
 
 __all__ = (
     "ChannelPermissions",
@@ -33,6 +33,7 @@ __all__ = (
 #   ChangeAvatar = 0b00000000000000000100000000000000    // 16382
 #   RemoveAvatars = 0b00000000000000001000000000000000   // 32768
 
+@fill_with_flags()
 class ChannelPermissions(BaseFlags):
     """Represents the channel permissions for a role as seen in channel settings."""
 
@@ -101,6 +102,7 @@ class ChannelPermissions(BaseFlags):
         return 1 << 7
 
 
+@fill_with_flags()
 class ServerPermissions(BaseFlags):
     """Represents the server permissions for a role as seen in server settings."""
 
