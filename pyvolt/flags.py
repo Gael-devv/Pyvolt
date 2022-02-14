@@ -4,8 +4,8 @@ from typing import Any, Callable, ClassVar, Dict, Iterator, Optional, Tuple, Typ
 
 __all__ = ("flag_value", "Flags", "UserBadges")
 
-FV = TypeVar('FV', bound='flag_value')
-BF = TypeVar('BF', bound='BaseFlags')
+FV = TypeVar("FV", bound="flag_value")
+BF = TypeVar("BF", bound="BaseFlags")
 
 
 class flag_value:
@@ -33,9 +33,31 @@ class flag_value:
         instance._set_flag(self.flag, value)
 
     def __repr__(self):
-        return f'<flag_value flag={self.flag!r}>'
+        return f"<flag_value flag={self.flag!r}>"
 
 
+def fill_with_flags(*, inverted: bool = False):
+    def decorator(cls: Type[BF]):
+        # fmt: off
+        cls.VALID_FLAGS = {
+            name: value.flag
+            for name, value in cls.__dict__.items()
+            if isinstance(value, flag_value)
+        }
+        # fmt: on
+
+        if inverted:
+            max_bits = max(cls.VALID_FLAGS.values()).bit_length()
+            cls.DEFAULT_VALUE = -1 + (2 ** max_bits)
+        else:
+            cls.DEFAULT_VALUE = 0
+
+        return cls
+
+    return decorator
+
+
+# n.b. flags must inherit from this and use the decorator above
 class BaseFlags:
     VALID_FLAGS: ClassVar[Dict[str, int]]
     DEFAULT_VALUE: ClassVar[int]
@@ -49,7 +71,7 @@ class BaseFlags:
         
         for key, value in kwargs.items():
             if key not in self.VALID_FLAGS:
-                raise TypeError(f'{key!r} is not a valid flag name.')
+                raise TypeError(f"{key!r} is not a valid flag name.")
                 
             setattr(self, key, value)
 
@@ -69,7 +91,7 @@ class BaseFlags:
         return hash(self.value)
 
     def __repr__(self) -> str:
-        return f'<{self.__class__.__name__} value={self.value}>'
+        return f"<{self.__class__.__name__} value={self.value}>"
 
     def __iter__(self) -> Iterator[Tuple[str, bool]]:
         for name, value in self.__class__.__dict__.items():
@@ -85,9 +107,10 @@ class BaseFlags:
         elif toggle is False:
             self.value &= ~o
         else:
-            raise TypeError(f'Value to set for {self.__class__.__name__} must be a bool.')
+            raise TypeError(f"Value to set for {self.__class__.__name__} must be a bool.")
 
 
+@fill_with_flags()
 class UserBadges(BaseFlags):
     """Contains all user badges"""
 
