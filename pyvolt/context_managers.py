@@ -50,7 +50,7 @@ class Typing:
 
     def __enter__(self: TypingT) -> TypingT:
         self.task: asyncio.Future = self.loop.create_task(self.do_typing())
-        # self.task.add_done_callback(_typing_done_callback)
+        self.task.add_done_callback(_typing_done_callback)
         return self
 
     def __exit__(self,
@@ -71,4 +71,3 @@ class Typing:
         traceback: Optional[TracebackType],
     ) -> None:
         await self.end_typing()
-        print("xd?")
