@@ -13,15 +13,17 @@ if TYPE_CHECKING:
         _ResponseType = ClientResponse
 
 __all__ = (
-    "RevoltException",
+    "PyvoltException",
     "HTTPException",
     "Forbidden",
     "NotFound",
-    "RevoltServerError"
+    "RevoltServerError",
+    "InvalidArgument",
+    "ConnectionClosed"
 )
 
 
-class RevoltException(Exception):
+class PyvoltException(Exception):
     """Base exception class for pyvolt
 
     Ideally speaking, this could be caught to handle any exceptions raised from this library.
@@ -46,7 +48,7 @@ def _flatten_error_dict(d: Dict[str, Any], key: str = '') -> Dict[str, str]:
     return dict(items)
 
 
-class HTTPException(RevoltException):
+class HTTPException(PyvoltException):
     """Exception that's raised when an HTTP request operation fails.
 
     Attributes
@@ -107,10 +109,20 @@ class RevoltServerError(HTTPException):
     """
     
 
-class ClientException(RevoltException):
+class ClientException(PyvoltException):
     """Exception that's raised when an operation in the :class:`Client` fails.
 
     These are usually for exceptions that happened due to user input.
+    """
+
+
+class InvalidArgument(ClientException):
+    """Exception that's raised when an argument to a function
+    is invalid some way (e.g. wrong value or wrong type).
+
+    This could be considered the analogous of ``ValueError`` and
+    ``TypeError`` except inherited from :exc:`ClientException` and thus
+    :exc:`PyvoltException`.
     """
 
 
@@ -119,3 +131,24 @@ class LoginFailure(ClientException):
     fails to log you in from improper credentials or some other misc.
     failure.
     """
+
+
+class ConnectionClosed(ClientException):
+    """Exception that's raised when the gateway connection is
+    closed for reasons that could not be handled internally.
+
+    Attributes
+    -----------
+    code: :class:`int`
+        The close code of the websocket.
+    reason: :class:`str`
+        The reason provided for the closure.
+    """
+
+    def __init__(self, socket: ClientWebSocketResponse, *, code: Optional[int] = None):
+        # This exception is just the same exception except
+        # reconfigured to subclass ClientException for users
+        self.code: int = code or socket.close_code or -1
+        # aiohttp doesn't seem to consistently provide close reason
+        self.reason: str = ""
+        super().__init__(f"WebSocket closed with {self.code}")
