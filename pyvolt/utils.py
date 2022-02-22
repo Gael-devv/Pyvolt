@@ -1,6 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any, Union, Dict
+
+from aiohttp import ClientResponse
+
+try:
+    import ujson as _json
+except ImportError:
+    import _json
 
 
 class _MissingSentinel:
@@ -11,10 +18,22 @@ class _MissingSentinel:
         return False
 
     def __repr__(self):
-        return '...'
+        return "..."
 
 
 MISSING: Any = _MissingSentinel()
+
+
+async def json_or_text(response: ClientResponse) -> Union[Dict[str, Any], str]:
+    text = await response.text(encoding="utf-8")
+    try:
+        if response.headers["content-type"] == "application/json":
+            return _json.loads(text)
+    except KeyError:
+        # Thanks Cloudflare
+        pass
+
+    return text
 
 
 def colour(value: Union[str, tuple]) -> str:
