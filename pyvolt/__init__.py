@@ -17,6 +17,7 @@ __version__ = "0.2.0a"
 from typing import NamedTuple, Literal
 
 from .client import *
+from .enums import *
 from .errors import *
 
 from .models.asset import *
