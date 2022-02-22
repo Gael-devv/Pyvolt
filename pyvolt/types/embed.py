@@ -41,7 +41,7 @@ class WebsiteEmbed(_BaseEmbed):
     site_name: str
 
 
-EmbedType = Union(TextEmbed, WebsiteEmbed)
+EmbedType = Union[TextEmbed, WebsiteEmbed]
 
 """
 # text embed

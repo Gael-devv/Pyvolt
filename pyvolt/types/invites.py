@@ -1,8 +1,11 @@
 from typing import TYPE_CHECKING, Literal, TypedDict
 
 if TYPE_CHECKING:
-    from .snowflake import Snowflake
     from .file import File
+    from .server import Server
+    from .channel import ChannelType
+
+    from .snowflake import Snowflake
     
 __all__ = (
     "InviteCreated",
@@ -38,3 +41,9 @@ class PartialInvite(TypedDict):
     server: Snowflake
     channel: Snowflake
     creator: Snowflake
+
+
+class JoinInvite(TypedDict):
+    type: Literal["Server"]
+    channel: ChannelType
+    server: Server
