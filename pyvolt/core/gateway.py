@@ -1,3 +1,27 @@
+"""
+The MIT License (MIT)
+
+Copyright (c) 2015-present Rapptz
+Copyright (c) 2022 Gael
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+"""
 import asyncio
 from typing import TYPE_CHECKING, Any, Callable
 from collections import namedtuple, deque
@@ -346,7 +370,7 @@ class DeltaWebSocket:
     async def send_heartbeat(self):
         # This bypasses the rate limit handling code since it has a higher priority
         try:
-            await self.socket.ping()
+            await self.send_payload({"type": "Ping", "data": 0})
         except RuntimeError as exc:
             if not self._can_handle_close():
                 raise ConnectionClosed(self.socket) from exc
