@@ -50,6 +50,11 @@ class SortType(Enum):
     relevance = "Relevance"
 
 
+class EmbedType(Enum):
+    text = "Text"
+    website = "Website"
+
+
 class ServerChannelType(Enum):
     text = "Text"
     voice = "Voice"
