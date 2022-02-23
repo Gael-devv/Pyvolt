@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Union, Dict
+from typing import TypeVar, Any, Union, Dict, Callable, Optional, Iterable
 
 from aiohttp import ClientResponse
 
@@ -8,6 +8,8 @@ try:
     import ujson as _json
 except ImportError:
     import _json
+
+T = TypeVar("T")
 
 
 class _MissingSentinel:
@@ -57,3 +59,30 @@ def colour(value: Union[str, tuple]) -> str:
             return value
         else:
             return "#" + value
+
+
+def find(predicate: Callable[[T], Any], seq: Iterable[T]) -> Optional[T]:
+    """A helper to return the first element found in the sequence
+    that meets the predicate. For example: ::
+
+        member = pyvolt.utils.find(lambda m: m.name == 'Mighty', channel.server.members)
+
+    would find the first :class:`~pyvolt.Member` whose name is 'Mighty' and return it.
+    If an entry is not found, then ``None`` is returned.
+
+    This is different from :func:`py:filter` due to the fact it stops the moment it finds
+    a valid entry.
+
+    Parameters
+    -----------
+    predicate
+        A function that returns a boolean-like result.
+    seq: :class:`collections.abc.Iterable`
+        The iterable to search through.
+    """
+
+    for element in seq:
+        if predicate(element):
+            return element
+    
+    return None
