@@ -45,6 +45,7 @@ if TYPE_CHECKING:
 
     from .asset import Asset
     from .embeds import Embed
+    from .server import Server
     from .message import MessageReply, Masquerade, Message
 
     MC = TypeVar("MC", "Messageable")
@@ -64,6 +65,7 @@ class Snowflake(Protocol):
 
     __slots__ = ()
     id: str
+    _data: dict
     
 
 class BaseChannel(Snowflake):
@@ -78,10 +80,22 @@ class EditableChannel(BaseChannel):
     """An ABC that details the common operations on a model that can editable channel"""
     
     __slots__ = ()
-    name: str
-    description: Optional[str]
-    icon: Optional[Asset]
-    nsfw: bool
+    
+    @property
+    def name(self) -> str:
+        return self._data["name"]
+    
+    @property
+    def description(self) -> Optional[str]:
+        return self._data.get("description", None)
+    
+    @property
+    def icon(self) -> Optional[Asset]:
+        return self._data.get("icon", None)
+    
+    @property
+    def nsfw(self) -> bool:
+        return self._data["nsfw"]
 
     @overload
     async def edit(
@@ -109,9 +123,16 @@ class ServerChannel(EditableChannel):
     """An ABC that details the common operations on a Revolt server channel."""
     
     __slots__ = ()
-    server: str
-    default_permissions: Optional[ChannelPermissions]
-    role_permissions: Optional[Dict[str, ChannelPermissions]]
+    
+    server: Server
+    
+    @property
+    def default_permissions(self) -> ChannelPermissions:
+        return ChannelPermissions(self._data.get("default_permissions", 0))
+    
+    @property
+    def role_permissions(self) -> Dict[str, ChannelPermissions]:
+        return {role_id: ChannelPermissions(perms) for role_id, perms in self._data.get("role_permissions", {}).items()}
     
     @property
     def mention(self) -> str:
@@ -167,19 +188,19 @@ class Messageable:
         ------------
         content: Optional[:class:`str`]
             The content of the message to send.
-        embed: :class:`~discord.Embed`
+        embed: :class:`~pyvolt.Embed`
             The rich embed for the content.
-        embeds: List[:class:`~discord.Embed`]
+        embeds: List[:class:`~pyvolt.Embed`]
             A list of embeds to upload. Must be a maximum of 10.
-        file: :class:`~discord.File`
+        file: :class:`~pyvolt.File`
             The file to upload.
-        files: List[:class:`~discord.File`]
+        files: List[:class:`~pyvolt.File`]
             A list of files to upload. Must be a maximum of 10.
         delete_after: :class:`float`
             If provided, the number of seconds to wait in the background
             before deleting the message we just sent. If the deletion fails,
             then it is silently ignored.
-        replies: Optional[list[:class:`MessageReply`]]
+        replies: Optional[list[:class:`~pyvolt.MessageReply`]]
             The list of messages to reply to.
 
         Raises
@@ -195,7 +216,7 @@ class Messageable:
 
         Returns
         ---------
-        :class:`~discord.Message`
+        :class:`~pyvolt.Message`
             The message that was sent.
         """
 
@@ -268,7 +289,7 @@ class Messageable:
             masquerade=masquerade
         )
 
-        ret = cache.create_message(channel=channel, data=data)
+        ret = cache.create_message(data=data)
         if delete_after is not None:
             await ret.delete(delay=delete_after)
         
@@ -294,7 +315,6 @@ class Messageable:
 
         """
         return Typing(self)
-    
     
     async def fetch_message(self, id: int, /) -> Message:
         """|coro|
@@ -338,7 +358,7 @@ class Messageable:
 
         Parameters
         -----------
-        sort: :class:`SortType`
+        sort: :class:`~pyvolt.SortType`
             The order to sort the messages in
         limit: :class:`int`
             How many messages to fetch
@@ -351,7 +371,7 @@ class Messageable:
 
         Returns
         --------
-        Generator[:class:`Message`]
+        Generator[:class:`~pyvolt.Message`]
             The messages found in order of the sort parameter
         """
         channel = await self._get_channel()
@@ -375,7 +395,7 @@ class Messageable:
         -----------
         query: :class:`str`
             The query to search for in the channel
-        sort: :class:`SortType`
+        sort: :class:`~pyvolt.SortType`
             The order to sort the messages in
         limit: :class:`int`
             How many messages to fetch
@@ -386,7 +406,7 @@ class Messageable:
 
         Returns
         --------
-        Generator[:class:`Message`]
+        Generator[:class:`~pyvolt.Message`]
             The messages found in order of the sort parameter
         """
         channel = await self._get_channel()

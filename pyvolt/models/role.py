@@ -16,22 +16,17 @@ __all__ = ("Role",)
 class Role:
     """Represents a role in a :class:`Server`"""
     __slots__ = (
+        "_cache", 
         "server", 
         "id", 
-        "name", 
-        "server_permissions", 
-        "channel_permissions",
-        "colour", 
-        "hoist", 
-        "rank", 
-        "_cache", 
+        "_data"
     )
 
-    def __init__(self, *, server: Server, cache: CacheManager, data: RolePayload, role_id: str):
-        self.server = server
+    def __init__(self, role_id: str, data: RolePayload, *, server: Server, cache: CacheManager):
         self._cache = cache
+        self.server = server
         self.id = role_id
-        self._update(data)
+        self._data = data
 
     def __str__(self) -> str:
         return self.name
@@ -40,8 +35,32 @@ class Role:
         return f"<Role id={self.id} name={self.name!r}>"
 
     @property
+    def name(self):
+        return self._data["name"]
+
+    @property
+    def server_permissions(self):
+        return ServerPermissions(self._data["permissions"][0])
+
+    @property
+    def channel_permissions(self):
+        return ChannelPermissions(self._data["permissions"][1])
+
+    @property
+    def colour(self):
+        return self._data.get("colour", None)
+
+    @property
     def color(self):
         return self.colour
+
+    @property
+    def hoist(self):
+        return self._data.get("hoist", False)
+    
+    @property
+    def rank(self):
+        return self._data["rank"]
 
     async def set_permissions(self, *, server_permissions: Optional[ServerPermissions] = None, channel_permissions: Optional[ChannelPermissions] = None) -> None:
         """Sets the permissions for a role in a server."""
@@ -53,14 +72,6 @@ class Role:
         channel_value = (channel_permissions or self.channel_permissions).value
 
         await self._cache.api.set_role_permissions(self.server.id, self.id, server_value, channel_value)
-
-    def _update(self, data: RolePayload):
-        self.name: str = data["name"]
-        self.server_permissions = ServerPermissions._from_value(data["permissions"][0])
-        self.channel_permissions = ChannelPermissions._from_value(data["permissions"][1])
-        self.colour: int = data.get("colour", None)
-        self.hoist: bool = data.get('hoist', False)
-        self.rank = data["rank"]
 
     async def delete(self) -> None:
         """Deletes the role"""

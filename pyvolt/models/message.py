@@ -98,55 +98,40 @@ class Message(Hashable):
         The id of the message
     content: :class:`str`
         The content of the message, this will not include system message's content
-    attachments: list[:class:`Asset`]
+    attachments: List[:class:`Asset`]
         The attachments of the message
-    embeds: list[:class:`Embed`]
+    embeds: List[:class:`Embed`]
         The embeds of the message
     channel: :class:`Messageable`
         The channel the message was sent in
-    server: :class:`Server`
+    server: Optional[:class:`Server`]
         The server the message was sent in
     author: Union[:class:`Member`, :class:`User`]
         The author of the message, will be :class:`User` in DMs
     edited_at: Optional[:class:`datetime.datetime`]
         The time at which the message was edited, will be None if the message has not been edited
-    mentions: list[Union[:class:`Member`, :class:`User`]]
+    mentions: List[Union[:class:`Member`, :class:`User`]]
         The users or members that where mentioned in the message
-    replies: list[:class:`Message`]
+    replies: List[:class:`Message`]
         The message's this message has replied to, this may not contain all the messages if they are outside the cache
-    reply_ids: list[:class:`str`]
+    reply_ids: List[:class:`str`]
         The message's ids this message has replies to
     """
-    __slots__ = ("_cache", "id", "content", "attachments", "embeds", "channel", "server", "author", "edited_at", "mentions", "replies", "replies_ids")
+    __slots__ = ("_cache", "id", "channel", "server", "author", "replies", "replies_ids", "_data")
 
     def __init__(self, data: MessagePayload, *, cache: CacheManager):
         self._cache = cache
 
         self.id = data["_id"]
-        self.content = data["content"]
-        self.attachments = [Attachment(cache, attachment) for attachment in data.get("attachments", [])]
-        self.embeds = [Embed.from_dict(embed) for embed in data.get("embeds", [])]
-
         self.channel = cache.get_channel(data["channel"])
-        self.server = self.channel and self.channel.server
-
+        
+        self.server = getattr(self.channel, "server", None)
         if self.server:
             author = cache.get_member(self.server.id, data["author"])
         else:
             author = cache.get_user(data["author"])
 
         self.author = author
-
-        if masquerade := data.get("masquerade"):
-            self.masquerade = Masquerade(**masquerade)
-
-        if edited_at := data.get("edited"):
-            self.edited_at: Optional[datetime.datetime] = datetime.datetime.strptime(edited_at["$date"], "%Y-%m-%dT%H:%M:%S.%f%z")
-
-        if self.server:
-            self.mentions = [self.server.get_member(member_id) for member_id in data.get("mentions", [])]
-        else:
-            self.mentions = [cache.get_user(member_id) for member_id in data.get("mentions", [])]
 
         self.replies = []
         self.replies_ids = []
@@ -159,16 +144,41 @@ class Message(Hashable):
                 pass
 
             self.replies_ids.append(reply)
+        
+        self._data = data
 
-    def _update(self, *, content: Optional[str] = None, edited_at: Optional[str] = None) -> Message:
-        if content:
-            self.content = content
+    @property
+    def content(self) -> str:
+        return self._data["content"]
 
-        if edited_at:
-            self.edited_at = datetime.datetime.strptime(edited_at, "%Y-%m-%dT%H:%M:%S.%f%z")
-            # strptime is used here instead of fromisoformat because of its inability to parse `Z` (Zulu or UTC time) in the RFCC 3339 format provided by API
+    @property
+    def attachments(self) -> List[Attachment]:
+        return [Attachment(self._cache, attachment) for attachment in self._data.get("attachments", [])]
 
-        return self
+    @property
+    def embeds(self) -> List[Embed]:
+        return [Embed.from_dict(embed) for embed in self._data.get("embeds", [])]
+
+    @property
+    def masquerade(self) -> Optional[Masquerade]:
+        if masquerade := self._data.get("masquerade"):
+            return Masquerade(**masquerade) 
+        
+        return None
+
+    @property
+    def edited_at(self) -> Optional[datetime.datetime]:
+        if edited_at := self._data.get("edited"):
+            return datetime.datetime.strptime(edited_at["$date"], "%Y-%m-%dT%H:%M:%S.%f%z")
+
+        return None
+
+    @property
+    def mentions(self):
+        if self.server:
+            return [self.server.get_member(member_id) for member_id in self._data.get("mentions", [])]
+        else:
+            return [self._cache.get_user(member_id) for member_id in self._data.get("mentions", [])]
 
     @property
     def jump_url(self) -> str:
