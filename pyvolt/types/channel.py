@@ -36,7 +36,7 @@ class DMChannel(_BaseChannel):
     last_message_id: Snowflake
 
 
-class _GroupOptional(TypedDict):
+class _GroupChannelOptional(TypedDict):
     icon: File
     description: str
     permissions: int
@@ -44,7 +44,7 @@ class _GroupOptional(TypedDict):
     nsfw: bool
 
 
-class Group(_BaseChannel, _GroupOptional):
+class GroupChannel(_BaseChannel, _GroupChannelOptional):
     channel_type: Literal["Group"]
     recipients: SnowflakeList
     name: str
@@ -81,4 +81,4 @@ class VoiceChannel(_BaseChannel, _VoiceChannelOptional):
 
 
 ServerChannel = Union[TextChannel, VoiceChannel]
-ChannelType = Union[ServerChannel, SavedMessages, DMChannel, Group]
+ChannelType = Union[ServerChannel, SavedMessages, DMChannel, GroupChannel]
