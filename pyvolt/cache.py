@@ -8,10 +8,14 @@ from typing import Dict, Optional, TYPE_CHECKING, Union, Callable, Any, List, Ty
 import inspect
 
 from .models.message import Message
+from . import utils
 
 if TYPE_CHECKING:
+    from .models.abc import Messageable
     from .core import Delta, DeltaWebSocket
     from .client import Client
+    
+    from .types.message import Message as MessagePayload
 
 
 class CacheManager: 
@@ -32,8 +36,6 @@ class CacheManager:
         if self.max_messages is not None and self.max_messages <= 0:
             self.max_messages = 1000
 
-        self._ready_task: Optional[asyncio.Task] = None
-                
         self.clear()
 
     def clear(self) -> None: 
@@ -47,3 +49,16 @@ class CacheManager:
             self._messages: Optional[Deque[Message]] = deque(maxlen=self.max_messages) 
         else:
             self._messages = None
+
+    def get_message(self, msg_id: Optional[int]) -> Optional[Message]:
+        return utils.find(lambda m: m.id == msg_id, reversed(self._messages)) if self._messages else None
+
+    def create_message(
+        self, *, data: MessagePayload
+    ) -> Message:
+        message = Message(data, cache=self)
+        if self._messages is not None:
+            self._messages.append(message)
+        
+        return message
+    

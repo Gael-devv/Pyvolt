@@ -137,11 +137,9 @@ class Message(Hashable):
         self.replies_ids = []
 
         for reply in data.get("replies", []):
-            try:
-                message = cache.get_message(reply)
+            message = cache.get_message(reply)
+            if message:
                 self.replies.append(message)
-            except KeyError:
-                pass
 
             self.replies_ids.append(reply)
         
